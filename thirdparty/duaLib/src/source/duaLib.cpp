@@ -2082,6 +2082,24 @@ std::string scePadGetMacAddress(int handle) {
 	return "";
 }
 
+int scePadGetBatteryInfo(int handle, uint8_t* percent, uint8_t* powerState) {
+	if (!g_initialized) return SCE_PAD_ERROR_NOT_INITIALIZED;
+	if (!percent || !powerState) return SCE_PAD_ERROR_INVALID_ARG;
+
+	for (auto& controller : g_controllers) {
+		std::shared_lock guard(controller.lock);
+
+		if (controller.sceHandle != handle) continue;
+		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
+		if (controller.deviceType != DUALSENSE) return SCE_PAD_ERROR_NOT_PERMITTED;
+
+		*percent = (uint8_t)std::min<int>(controller.dualsenseCurInputState.PowerPercent * 10, 100);
+		*powerState = (uint8_t)controller.dualsenseCurInputState.powerState;
+		return SCE_OK;
+	}
+	return SCE_PAD_ERROR_INVALID_HANDLE;
+}
+
 std::string scePadGetPath(int handle) {
 	if (!g_initialized) return "";
 

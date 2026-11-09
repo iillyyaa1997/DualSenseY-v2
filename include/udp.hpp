@@ -168,7 +168,8 @@ enum class InstructionType {
 
 	// DSY only
 	CONFIG = 30,
-	BRING_TO_FRONT = 31
+	BRING_TO_FRONT = 31,
+	BATTERY_ALERT_TEST = 32
 };
 
 class Instruction {

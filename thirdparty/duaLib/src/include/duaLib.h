@@ -430,6 +430,8 @@ extern "C" {
  int scePadSetPlayerLed(int handle, bool state);
  int scePadSetMicLed(int handle, bool state);
  std::string scePadGetMacAddress(int handle);
+/// DualSense only. percent is 0-100 in steps of 10, powerState is 0 discharging, 1 charging, 2 complete, anything else an error
+ int scePadGetBatteryInfo(int handle, uint8_t* percent, uint8_t* powerState);
  std::string scePadGetPath(int handle);
  int scePadSetTriggerEffectCustom(int handle, uint8_t left[11], uint8_t right[11], uint8_t triggerBitmask);
  void* scePadGetHidApiHandle(int handle);

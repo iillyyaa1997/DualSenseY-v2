@@ -75,6 +75,14 @@ void UDP::Listen() {
 						dontCountAsUpdate = true;
 						break;
 					}
+
+					case InstructionType::BATTERY_ALERT_TEST:
+					{
+						if (instr.parameters.size() >= 2)
+							SetBatteryAlertTest(std::any_cast<int>(instr.parameters[0]), std::any_cast<int>(instr.parameters[1]));
+						dontCountAsUpdate = true;
+						break;
+					}
 					
 				}
 

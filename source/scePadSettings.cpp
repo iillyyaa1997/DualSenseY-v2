@@ -1,11 +1,17 @@
 #include "scePadSettings.hpp"
 #include "led.hpp"
+#include "batteryAlert.hpp"
+#include <atomic>
 #include <algorithm>
 #include <fstream>
 #include <imgui.h>
 #include <platform_folders.h>
 
 static std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+static BatteryAlert g_BatteryAlerts[4];
+static std::atomic<int> g_BatteryAlertTest[4] = {};
+static bool g_BatteryAlertRumbled[4] = {};
+
 // <Mac address, was loaded>
 static std::unordered_map<std::string, bool> loadList;
 
@@ -127,6 +133,54 @@ bool SaveSettingsFromString(const std::string &String, const std::string &Path)
 	}
 }
 
+void SetBatteryAlertTest(int padNumber, int mode)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		if (padNumber == 0 || padNumber == i + 1)
+			g_BatteryAlertTest[i] = mode;
+	}
+}
+
+static void UpdateBatteryAlert(uint32_t index, int64_t nowMs)
+{
+	uint8_t percent = 0;
+	uint8_t powerState = 0;
+	bool connected = scePadGetBatteryInfo(g_ScePad[index], &percent, &powerState) == SCE_OK;
+
+	int test = g_BatteryAlertTest[index];
+	if (test == 1)
+	{
+		percent = BatteryAlert::LOW_PERCENT;
+		powerState = BatteryAlert::POWER_DISCHARGING;
+	}
+	else if (test == 2)
+	{
+		percent = 100;
+		powerState = BatteryAlert::POWER_COMPLETE;
+	}
+
+	g_BatteryAlerts[index].Update(connected, powerState, percent, nowMs);
+}
+
+// The pad's own colour blinks; a pad with no colour blinks red for low battery and green for full
+static void ApplyBatteryAlertToLightbar(const BatteryAlert &alert, s_SceLightBar &lightbar, int64_t nowMs)
+{
+	if (!alert.IsBlinking(nowMs))
+		return;
+
+	if (alert.IsDarkPhase(nowMs))
+	{
+		lightbar.r = lightbar.g = lightbar.b = 0;
+	}
+	else if (lightbar.r == 0 && lightbar.g == 0 && lightbar.b == 0)
+	{
+		bool low = alert.CurrentSignal() == BatteryAlert::Signal::Low;
+		lightbar.r = low ? 255 : 0;
+		lightbar.g = low ? 0 : 255;
+	}
+}
+
 void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &audio)
 {
 	auto now = std::chrono::steady_clock::now();
@@ -140,29 +194,36 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 	float audioPeak = audio.GetCurrentCapturePeak();
 	uint8_t audioPeakUint8 = (uint8_t)scaleFloatToInt(audioPeak, 1.0);
 
+	int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
+	UpdateBatteryAlert(index, nowMs);
+	const BatteryAlert &batteryAlert = g_BatteryAlerts[index];
+
+	s_SceLightBar finalLightbar = {};
 	if (settings.useLightbarFromEmulatedController && (settings.emulatedController == (int)EmulatedController::DUALSHOCK4 || settings.usingPeerController))
 	{
-		scePadSetLightBar(g_ScePad[index], &settings.lightbarFromEmulatedController);
+		finalLightbar = settings.lightbarFromEmulatedController;
 	}
 	else if (settings.audioToLed && !settings.discoMode)
 	{
 		s_SceLightBar lightbar = {audioPeakUint8, audioPeakUint8, audioPeakUint8};
-		scePadSetLightBar(g_ScePad[index], &lightbar);
+		finalLightbar = lightbar;
 	}
 	else if (settings.audioToLed && settings.discoMode)
 	{
 		s_SceLightBar lightbar = {std::min(audioPeakUint8, rainbowLightbar.r), std::min(audioPeakUint8, rainbowLightbar.g), std::min(audioPeakUint8, rainbowLightbar.b)};
-		scePadSetLightBar(g_ScePad[index], &lightbar);
+		finalLightbar = lightbar;
 	}
 	else if (settings.discoMode)
 	{
-		scePadSetLightBar(g_ScePad[index], &rainbowLightbar);
+		finalLightbar = rainbowLightbar;
 	}
 	else
 	{
 		s_SceLightBar lightbar = {(uint8_t)scaleFloatToInt(settings.led[0], 1.0f), (uint8_t)scaleFloatToInt(settings.led[1], 1.0f), (uint8_t)scaleFloatToInt(settings.led[2], 1.0f)};
-		scePadSetLightBar(g_ScePad[index], &lightbar);
+		finalLightbar = lightbar;
 	}
+	ApplyBatteryAlertToLightbar(batteryAlert, finalLightbar, nowMs);
+	scePadSetLightBar(g_ScePad[index], &finalLightbar);
 
 	scePadSetPlayerLedBrightness(g_ScePad[index], settings.brightness);
 	scePadSetPlayerLed(g_ScePad[index], settings.disablePlayerLed ? false : true);
@@ -284,8 +345,16 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 		scePadSetTriggerEffectCustom(g_ScePad[index], settings.leftCustomTrigger.data(), settings.rightCustomTrigger.data(), triggerBitmask);
 	}
 
-	if (settings.useRumbleFromEmulatedController || settings.udpConfig)
+	if (batteryAlert.IsRumbling(nowMs))
 	{
+		s_ScePadVibrationParam alertRumble = {200, 200};
+		scePadSetVibrationMode(g_ScePad[index], SCE_PAD_RUMBLE_MODE);
+		scePadSetVibration(g_ScePad[index], &alertRumble);
+		g_BatteryAlertRumbled[index] = true;
+	}
+	else if (settings.useRumbleFromEmulatedController || settings.udpConfig)
+	{
+		g_BatteryAlertRumbled[index] = false;
 		if (settings.rumbleFromEmulatedController.largeMotor > 0 || settings.rumbleFromEmulatedController.smallMotor > 0)
 		{
 			scePadSetVibrationMode(g_ScePad[index], SCE_PAD_RUMBLE_MODE);
@@ -296,5 +365,11 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 		}
 
 		scePadSetVibration(g_ScePad[index], &settings.rumbleFromEmulatedController);
+	}
+	else if (g_BatteryAlertRumbled[index])
+	{
+		g_BatteryAlertRumbled[index] = false;
+		s_ScePadVibrationParam stop = {0, 0};
+		scePadSetVibration(g_ScePad[index], &stop);
 	}
 }

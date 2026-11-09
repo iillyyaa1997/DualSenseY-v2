@@ -357,6 +357,9 @@ const std::unordered_map<std::string, TriggerHandler> dsxTriggerHandlers = {
 	{TriggerStringDSX::VIBRATE_TRIGGER_10Hz, [](s_scePadSettings& s, int& triggerIndex, const std::vector<uint8_t>& p) {CustomTriggerVIBRATE_TRIGGER_10Hz(p, triggerIndex == L2 ? s.leftCustomTrigger.data() : s.rightCustomTrigger.data()); }},
 };
 
+// Pretends a battery state so the alert can be tried without draining a pad.
+// padNumber is 1-4 (0 = all), mode is 0 off, 1 low battery, 2 charge complete
+void SetBatteryAlertTest(int padNumber, int mode);
 void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough& audio);
 
 #endif
