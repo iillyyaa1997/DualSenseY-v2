@@ -167,5 +167,7 @@
   "HapticsAtAudioPassthroughNotice": "Audio passthrough musi być włączone, aby funkcja działała.",
   "HapticsAtPriorityNotice": "(Haptyka do AT jest aktywna i ma priorytet nad Rumble do AT)",
   "UdpTimeoutSeconds": "Limit czasu UDP (sekundy)",
-  "UdpTimeoutSecondsTooltip": "Jak długo efekty moda pozostają aktywne po ostatnim pakiecie UDP. 0 = do następnego pakietu lub resetu."
+  "UdpTimeoutSecondsTooltip": "Jak długo efekty moda pozostają aktywne po ostatnim pakiecie UDP. 0 = do następnego pakietu lub resetu.",
+  "PlayerLedBattery": "Pokazuj baterię na diodach gracza",
+  "PlayerLedBatteryTooltip": "Pięć diod pod touchpadem pokazuje naładowanie: jedna dioda to prawie pusta bateria, pięć to pełna. Podczas ładowania miga następna dioda, przy 10% miga środkowa."
 }

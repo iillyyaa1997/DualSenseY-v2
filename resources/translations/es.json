@@ -156,5 +156,7 @@
   "ShareButton": "Botón Compartir",
   "ShareButtonAsSelect": "Botón compartir como Select",
   "TouchpadAsSelect": "Panel táctil como Select",
-  "TouchpadAsStart": "Panel táctil como Start"
+  "TouchpadAsStart": "Panel táctil como Start",
+  "PlayerLedBattery": "Show battery on player LEDs",
+  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge: one LED is nearly empty, all five are full. While charging the next step blinks; at 10% the centre LED blinks."
 }

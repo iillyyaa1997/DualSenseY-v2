@@ -194,6 +194,10 @@ bool MainWindow::MenuBar(int &currentController, s_scePadSettings &scePadSetting
 				SaveAppSettings(&m_AppSettings);
 			if (ImGui::MenuItem(cstr("DontConnectToServerOnStart"), NULL, &m_AppSettings.DontConnectToServerOnStart))
 				SaveAppSettings(&m_AppSettings);
+			if (ImGui::MenuItem(cstr("PlayerLedBattery"), NULL, &m_AppSettings.PlayerLedBattery))
+				SaveAppSettings(&m_AppSettings);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", cstr("PlayerLedBatteryTooltip"));
 
 			int udpTimeout = (int)m_AppSettings.UdpTimeoutSeconds;
 			ImGui::SetNextItemWidth(150);

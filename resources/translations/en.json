@@ -175,5 +175,7 @@
   "HapticsAtAudioPassthroughNotice": "Audio passthrough must be enabled for this feature to work.",
   "HapticsAtPriorityNotice": "(Haptics to AT is active and takes priority over Rumble to AT)",
   "UdpTimeoutSeconds": "UDP timeout (seconds)",
-  "UdpTimeoutSecondsTooltip": "How long mod effects stay active after the last UDP packet. 0 = keep them until the next packet or a reset."
+  "UdpTimeoutSecondsTooltip": "How long mod effects stay active after the last UDP packet. 0 = keep them until the next packet or a reset.",
+  "PlayerLedBattery": "Show battery on player LEDs",
+  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge: one LED is nearly empty, all five are full. While charging the next step blinks; at 10% the centre LED blinks."
 }

@@ -358,8 +358,11 @@ const std::unordered_map<std::string, TriggerHandler> dsxTriggerHandlers = {
 };
 
 // Pretends a battery state so the alert can be tried without draining a pad.
-// padNumber is 1-4 (0 = all), mode is 0 off, 1 low battery, 2 charge complete
+// padNumber is 1-4 (0 = all), mode is 0 off, 1 low battery, 2 charge complete,
+// 3 charging at 50%, 4 discharging at 60%
 void SetBatteryAlertTest(int padNumber, int mode);
+// Show the battery level on the player LEDs instead of the player number
+void SetPlayerLedBattery(bool enabled);
 void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough& audio);
 
 #endif

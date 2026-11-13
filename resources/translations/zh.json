@@ -156,5 +156,7 @@
   "ShareButton": "分享按钮",
   "ShareButtonAsSelect": "分享按钮作为选择键",
   "TouchpadAsSelect": "触摸板作为选择键",
-  "TouchpadAsStart": "触摸板作为开始键"
+  "TouchpadAsStart": "触摸板作为开始键",
+  "PlayerLedBattery": "Show battery on player LEDs",
+  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge: one LED is nearly empty, all five are full. While charging the next step blinks; at 10% the centre LED blinks."
 }

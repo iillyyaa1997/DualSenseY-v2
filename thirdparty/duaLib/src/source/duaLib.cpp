@@ -114,7 +114,32 @@ namespace duaLibUtils {
 		uint8_t touch2LastIndex = 0;
 		bool started = false;
 		bool playerLed = true;
+		int playerLedLevel = -1;
 	};
+
+	// Lights `level` LEDs from the middle outwards. Older revisions address each LED
+	// (PlayerLight1-5 = left to right); newer ones light symmetric groups only:
+	// PlayerLight1 = outer pair, PlayerLight2 = inner pair, PlayerLight3 = centre.
+	void setPlayerLightsLevel(duaLibUtils::controller& controller, int level, bool oldStyle) {
+		bool centre = level == 1 || level == 3 || level == 5;
+		bool inner = level >= 2;
+		bool outer = level >= 4;
+		auto& out = controller.dualsenseCurOutputState;
+		if (oldStyle) {
+			out.PlayerLight1 = outer;
+			out.PlayerLight2 = inner;
+			out.PlayerLight3 = centre;
+			out.PlayerLight4 = inner;
+			out.PlayerLight5 = outer;
+		}
+		else {
+			out.PlayerLight1 = outer;
+			out.PlayerLight2 = inner;
+			out.PlayerLight3 = centre;
+			out.PlayerLight4 = false;
+			out.PlayerLight5 = false;
+		}
+	}
 
 	void setPlayerLights(duaLibUtils::controller& controller, bool oldStyle) {
 		if (!controller.playerLed) {
@@ -123,6 +148,11 @@ namespace duaLibUtils {
 			controller.dualsenseCurOutputState.PlayerLight3 = false;
 			controller.dualsenseCurOutputState.PlayerLight4 = false;
 			controller.dualsenseCurOutputState.PlayerLight5 = false;
+			return;
+		}
+
+		if (controller.playerLedLevel >= 0) {
+			setPlayerLightsLevel(controller, controller.playerLedLevel, oldStyle);
 			return;
 		}
 
@@ -2042,6 +2072,23 @@ int scePadSetPlayerLed(int handle, bool state) {
 		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
 
 		controller.playerLed = state;
+
+		return SCE_OK;
+	}
+	return SCE_PAD_ERROR_INVALID_HANDLE;
+}
+
+int scePadSetPlayerLedLevel(int handle, int level) {
+	if (!g_initialized) return SCE_PAD_ERROR_NOT_INITIALIZED;
+	if (level < -1 || level > 5) return SCE_PAD_ERROR_INVALID_ARG;
+
+	for (auto& controller : g_controllers) {
+		std::shared_lock guard(controller.lock);
+
+		if (controller.sceHandle != handle) continue;
+		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
+
+		controller.playerLedLevel = level;
 
 		return SCE_OK;
 	}

@@ -1,6 +1,7 @@
 #include "scePadSettings.hpp"
 #include "led.hpp"
 #include "batteryAlert.hpp"
+#include "batteryLeds.hpp"
 #include <atomic>
 #include <algorithm>
 #include <fstream>
@@ -11,6 +12,9 @@ static std::chrono::steady_clock::time_point startTime = std::chrono::steady_clo
 static BatteryAlert g_BatteryAlerts[4];
 static std::atomic<int> g_BatteryAlertTest[4] = {};
 static bool g_BatteryAlertRumbled[4] = {};
+static BatteryLeds g_BatteryLeds[4];
+static int g_BatteryLedLevel[4] = {-1, -1, -1, -1};
+static std::atomic<bool> g_PlayerLedBattery = false;
 
 // <Mac address, was loaded>
 static std::unordered_map<std::string, bool> loadList;
@@ -133,6 +137,11 @@ bool SaveSettingsFromString(const std::string &String, const std::string &Path)
 	}
 }
 
+void SetPlayerLedBattery(bool enabled)
+{
+	g_PlayerLedBattery = enabled;
+}
+
 void SetBatteryAlertTest(int padNumber, int mode)
 {
 	for (int i = 0; i < 4; i++)
@@ -159,8 +168,19 @@ static void UpdateBatteryAlert(uint32_t index, int64_t nowMs)
 		percent = 100;
 		powerState = BatteryAlert::POWER_COMPLETE;
 	}
+	else if (test == 3)
+	{
+		percent = 50;
+		powerState = BatteryAlert::POWER_CHARGING;
+	}
+	else if (test == 4)
+	{
+		percent = 60;
+		powerState = BatteryAlert::POWER_DISCHARGING;
+	}
 
 	g_BatteryAlerts[index].Update(connected, powerState, percent, nowMs);
+	g_BatteryLedLevel[index] = g_BatteryLeds[index].Update(connected, powerState, percent, nowMs);
 }
 
 // The pad's own colour blinks; a pad with no colour blinks red for low battery and green for full
@@ -227,6 +247,7 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 
 	scePadSetPlayerLedBrightness(g_ScePad[index], settings.brightness);
 	scePadSetPlayerLed(g_ScePad[index], settings.disablePlayerLed ? false : true);
+	scePadSetPlayerLedLevel(g_ScePad[index], g_PlayerLedBattery ? g_BatteryLedLevel[index] : -1);
 	bool micLedState = settings.gyroToRightStick && settings.gyroToRightStickPermanent;
 	scePadSetMicLed(g_ScePad[index], micLedState);
 	if (!settings.udpConfig)

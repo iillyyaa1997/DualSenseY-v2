@@ -161,5 +161,7 @@
   "UseHotkey": "Використовувати гарячу клавішу",
   "GyroToMouseHotkey": "Гаряча клавіша гіроскопу в мишу",
   "HidHideNotInstalled": "HidHide не встановлено!",
-  "HidHideInstallLink": "Встановити HidHide"
+  "HidHideInstallLink": "Встановити HidHide",
+  "PlayerLedBattery": "Показувати заряд на індикаторах гравця",
+  "PlayerLedBatteryTooltip": "П'ять вогників під тачпадом показують заряд: один вогник — майже порожньо, усі п'ять — повний. Під час заряджання блимає наступний вогник, при 10% блимає центральний."
 }

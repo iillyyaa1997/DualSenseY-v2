@@ -161,5 +161,7 @@
   "UseHotkey": "Use hotkey",
   "GyroToMouseHotkey": "Gyro to mouse hotkey",
   "HidHideNotInstalled": "HidHide is not installed!",
-  "HidHideInstallLink": "Install HidHide"
+  "HidHideInstallLink": "Install HidHide",
+  "PlayerLedBattery": "Akkustand auf den Spieler-LEDs anzeigen",
+  "PlayerLedBatteryTooltip": "Die fünf LEDs unter dem Touchpad zeigen den Ladestand: eine LED ist fast leer, alle fünf sind voll. Beim Laden blinkt die nächste Stufe, bei 10% blinkt die mittlere LED."
 }

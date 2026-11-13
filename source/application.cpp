@@ -275,6 +275,7 @@ bool Application::Run(const std::string& Argument1) {
 		udp.SetVibrationToUdpConfig(m_ScePadSettings[selectedController].rumbleFromEmulatedController);
 		audio.Validate();
 
+		SetPlayerLedBattery(m_AppSettings.PlayerLedBattery);
 		for (int i = 0; i < 4; i++) {
 			LoadDefaultConfig(i, &m_ScePadSettings[i]);
 			applySettings(i, i == (selectedController) && udp.IsActive() ? udp.GetSettings() : m_ScePadSettings[i], audio);
