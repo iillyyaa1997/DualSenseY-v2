@@ -431,6 +431,8 @@ extern "C" {
 /// DualSense only. level -1 shows the player number again, 0 switches the LEDs off,
 /// 1-5 lights that many LEDs from the middle outwards (centre, inner pair, outer pair)
  int scePadSetPlayerLedLevel(int handle, int level);
+/// DualSense only, for testing: mask bits 0-4 go straight to the five player light bits; -1 = off
+ int scePadSetPlayerLedRaw(int handle, int mask);
  int scePadSetMicLed(int handle, bool state);
  std::string scePadGetMacAddress(int handle);
 /// DualSense only. percent is 0-100 in steps of 10, powerState is 0 discharging, 1 charging, 2 complete, anything else an error

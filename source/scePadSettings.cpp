@@ -15,6 +15,7 @@ static bool g_BatteryAlertRumbled[4] = {};
 static BatteryLeds g_BatteryLeds[4];
 static int g_BatteryLedLevel[4] = {-1, -1, -1, -1};
 static std::atomic<bool> g_PlayerLedBattery = false;
+static std::atomic<int> g_PlayerLedRawTest[4] = {-1, -1, -1, -1};
 
 // <Mac address, was loaded>
 static std::unordered_map<std::string, bool> loadList;
@@ -146,7 +147,13 @@ void SetBatteryAlertTest(int padNumber, int mode)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (padNumber == 0 || padNumber == i + 1)
+		if (padNumber != 0 && padNumber != i + 1)
+			continue;
+		if (mode >= 100 && mode <= 131)
+			g_PlayerLedRawTest[i] = mode - 100;  // raw player light bits, for finding out what a pad lights
+		else if (mode == 99)
+			g_PlayerLedRawTest[i] = -1;
+		else
 			g_BatteryAlertTest[i] = mode;
 	}
 }
@@ -248,6 +255,7 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 	scePadSetPlayerLedBrightness(g_ScePad[index], settings.brightness);
 	scePadSetPlayerLed(g_ScePad[index], settings.disablePlayerLed ? false : true);
 	scePadSetPlayerLedLevel(g_ScePad[index], g_PlayerLedBattery ? g_BatteryLedLevel[index] : -1);
+	scePadSetPlayerLedRaw(g_ScePad[index], g_PlayerLedRawTest[index]);
 	bool micLedState = settings.gyroToRightStick && settings.gyroToRightStickPermanent;
 	scePadSetMicLed(g_ScePad[index], micLedState);
 	if (!settings.udpConfig)

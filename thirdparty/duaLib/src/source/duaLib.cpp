@@ -115,6 +115,7 @@ namespace duaLibUtils {
 		bool started = false;
 		bool playerLed = true;
 		int playerLedLevel = -1;
+		int playerLedRawMask = -1;
 	};
 
 	// Lights `level` LEDs from the middle outwards. Older revisions address each LED
@@ -148,6 +149,16 @@ namespace duaLibUtils {
 			controller.dualsenseCurOutputState.PlayerLight3 = false;
 			controller.dualsenseCurOutputState.PlayerLight4 = false;
 			controller.dualsenseCurOutputState.PlayerLight5 = false;
+			return;
+		}
+
+		if (controller.playerLedRawMask >= 0) {
+			auto& out = controller.dualsenseCurOutputState;
+			out.PlayerLight1 = (controller.playerLedRawMask & 0x01) != 0;
+			out.PlayerLight2 = (controller.playerLedRawMask & 0x02) != 0;
+			out.PlayerLight3 = (controller.playerLedRawMask & 0x04) != 0;
+			out.PlayerLight4 = (controller.playerLedRawMask & 0x08) != 0;
+			out.PlayerLight5 = (controller.playerLedRawMask & 0x10) != 0;
 			return;
 		}
 
@@ -2089,6 +2100,23 @@ int scePadSetPlayerLedLevel(int handle, int level) {
 		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
 
 		controller.playerLedLevel = level;
+
+		return SCE_OK;
+	}
+	return SCE_PAD_ERROR_INVALID_HANDLE;
+}
+
+int scePadSetPlayerLedRaw(int handle, int mask) {
+	if (!g_initialized) return SCE_PAD_ERROR_NOT_INITIALIZED;
+	if (mask < -1 || mask > 0x1F) return SCE_PAD_ERROR_INVALID_ARG;
+
+	for (auto& controller : g_controllers) {
+		std::shared_lock guard(controller.lock);
+
+		if (controller.sceHandle != handle) continue;
+		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
+
+		controller.playerLedRawMask = mask;
 
 		return SCE_OK;
 	}
