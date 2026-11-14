@@ -22,9 +22,9 @@ public:
 	// A freshly connected pad reads as discharging at 0% until its first input report arrives
 	static constexpr int64_t CONFIRM_MS = 3000;
 	// One pulse: bright, mid, dim, mid
-	static constexpr int64_t PULSE_MS = 1500;
+	static constexpr int64_t PULSE_MS = 3000;
 	// While charging each picture rises from dim to bright and back down before the other one
-	static constexpr int64_t PICTURE_MS = 1500;
+	static constexpr int64_t PICTURE_MS = 3000;
 
 	struct Show {
 		int level;  // -1 = leave the player number, 0 = all off, 1-5 = steps
@@ -57,22 +57,22 @@ public:
 		return steps > 5 ? 5 : steps;
 	}
 
-	// bright 500 ms, mid 250, dim 500, mid 250
+	// bright 1000 ms, mid 500, dim 1000, mid 500
 	static int PulseDim(int64_t nowMs) {
 		int64_t p = nowMs % PULSE_MS;
-		if (p < 500) return 0;
-		if (p < 750) return 1;
-		if (p < 1250) return 2;
+		if (p < 1000) return 0;
+		if (p < 1500) return 1;
+		if (p < 2500) return 2;
 		return 1;
 	}
 
-	// dim 300 ms, mid 250, bright 400, mid 250, dim 300: pictures change over while dim
+	// dim 600 ms, mid 500, bright 800, mid 500, dim 600: pictures change over while dim
 	static int PictureDim(int64_t nowMs) {
 		int64_t p = nowMs % PICTURE_MS;
-		if (p < 300) return 2;
-		if (p < 550) return 1;
-		if (p < 950) return 0;
-		if (p < 1200) return 1;
+		if (p < 600) return 2;
+		if (p < 1100) return 1;
+		if (p < 1900) return 0;
+		if (p < 2400) return 1;
 		return 2;
 	}
 
