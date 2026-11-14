@@ -10,26 +10,14 @@ int main() {
   const int full[11] = {0,0,1,1,2,2,3,3,4,4,5};
   for (int p = 0; p <= 100; p += 10) CHECK(B::FullSteps(p) == full[p / 10]);
   { B b; CHECK(b.Update(false, 0, 80, 0).level == -1); CHECK(b.Update(true, 0, 0, 1000).level == -1); CHECK(b.Update(true, 0, 80, 3999).level == -1);
-    B::Show s = b.Update(true, 0, 80, 4000); CHECK(s.level == 4 && s.dim == 0); }
-  // unplugged above 20%: steady and bright
+    CHECK(b.Update(true, 0, 80, 4000).level == 4); }
   const int steady[11] = {-9,-9,-9,1,2,2,3,3,4,4,5};
   for (int p = 30; p <= 100; p += 10) { B b = ready(0, p); for (int64_t t = 3000; t < 9000; t += 37) { B::Show s = b.Update(true, 0, p, t); CHECK(s.level == steady[p / 10] && s.dim == 0); } }
-  // 20% or less unplugged: the centre never goes off, it pulses through all three brightnesses
-  for (int p : {0, 10, 20}) { B b = ready(0, p); int seen[3] = {}; for (int64_t t = 3000; t < 15000; t += 10) { B::Show s = b.Update(true, 0, p, t); CHECK(s.level == 1); seen[s.dim]++; } CHECK(seen[0] && seen[1] && seen[2]); }
-  // charging: current and next take turns, and the change happens while dim
+  for (int p : {0, 10, 20}) { B b = ready(0, p); int on = 0, off = 0; for (int64_t t = 3000; t < 13000; t += 10) { int l = b.Update(true, 0, p, t).level; CHECK(l == 0 || l == 1); l ? on++ : off++; } CHECK(on > 400 && off > 400); }
   const int a[6][2] = {{0,1},{1,2},{2,3},{3,4},{4,5},{5,0}};
-  for (int p = 0; p <= 90; p += 10) { int f = B::FullSteps(p); B b = ready(1, p); int prev = -2, prevDim = 0; bool sawA = false, sawB = false;
-    for (int64_t t = 3000; t < 20000; t += 10) { B::Show s = b.Update(true, 1, p, t); CHECK(s.level == a[f][0] || s.level == a[f][1]);
-      sawA |= s.level == a[f][0]; sawB |= s.level == a[f][1];
-      if (prev != -2 && s.level != prev) { CHECK(prevDim == 2 && s.dim == 2); }
-      prev = s.level; prevDim = s.dim; }
-    CHECK(sawA && sawB); }
-  // charged (complete, or charging at 100%): all five stay lit and pulse
-  for (uint8_t st : {(uint8_t)2, (uint8_t)1}) { B b = ready(st, 100); int seen[3] = {}; for (int64_t t = 3000; t < 15000; t += 10) { B::Show s = b.Update(true, st, 100, t); CHECK(s.level == 5); seen[s.dim]++; } CHECK(seen[0] && seen[1] && seen[2]); }
-  // pulse and picture shapes
-  CHECK(B::PulseDim(0) == 0 && B::PulseDim(999) == 0 && B::PulseDim(1000) == 1 && B::PulseDim(1500) == 2 && B::PulseDim(2499) == 2 && B::PulseDim(2500) == 1 && B::PulseDim(3000) == 0);
-  CHECK(B::PictureDim(0) == 2 && B::PictureDim(600) == 1 && B::PictureDim(1100) == 0 && B::PictureDim(1899) == 0 && B::PictureDim(1900) == 1 && B::PictureDim(2400) == 2 && B::PictureDim(2999) == 2 && B::PictureDim(3000) == 2);
-  // error state / disconnect
+  for (int p = 0; p <= 90; p += 10) { int f = B::FullSteps(p); B b = ready(1, p); bool sawA = false, sawB = false; for (int64_t t = 3000; t < 9000; t += 10) { int l = b.Update(true, 1, p, t).level; CHECK(l == a[f][0] || l == a[f][1]); sawA |= l == a[f][0]; sawB |= l == a[f][1]; } CHECK(sawA && sawB); }
+  for (uint8_t st : {(uint8_t)2, (uint8_t)1}) { B b = ready(st, 100); bool five = false, none = false; for (int64_t t = 3000; t < 9000; t += 10) { int l = b.Update(true, st, 100, t).level; CHECK(l == 5 || l == 0); five |= l == 5; none |= l == 0; } CHECK(five && none); }
+  CHECK(B::Alternate(7, 8, 0) == 7 && B::Alternate(7, 8, 999) == 7 && B::Alternate(7, 8, 1000) == 8 && B::Alternate(7, 8, 2000) == 7);
   { B b = ready(0, 80); CHECK(b.Update(true, 0x0F, 0, 5000).level == -1); CHECK(b.Update(true, 0, 80, 5100).level == -1); CHECK(b.Update(true, 0, 80, 8200).level == 4); }
   printf("%d checks, %d failed\n", checks, fails); return fails != 0;
 }

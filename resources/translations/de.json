@@ -163,5 +163,5 @@
   "HidHideNotInstalled": "HidHide is not installed!",
   "HidHideInstallLink": "Install HidHide",
   "PlayerLedBattery": "Akkustand auf den Spieler-LEDs anzeigen",
-  "PlayerLedBatteryTooltip": "Die fünf LEDs unter dem Touchpad zeigen den Ladestand, eine Stufe pro 20%, wie die PlayStation-Spielernummern. Bei 20% oder weniger pulsiert die mittlere LED, beim Laden wechseln sich die aktuelle und die nächste Stufe ab, und wenn er voll ist, pulsieren alle fünf, bis das Kabel abgezogen wird."
+  "PlayerLedBatteryTooltip": "Die fünf LEDs unter dem Touchpad zeigen den Ladestand, eine Stufe pro 20%, wie die PlayStation-Spielernummern. Bei 20% oder weniger blinkt die mittlere LED, beim Laden wechseln sich die aktuelle und die nächste Stufe ab, und wenn er voll ist, blinken alle fünf, bis das Kabel abgezogen wird."
 }

@@ -128,5 +128,5 @@
   "RemoveDefaultConfig": "Varsayılan yapılandırmayı kaldır",
   "SelectedTrigger": "Seçilen tetik",
   "PlayerLedBattery": "Show battery on player LEDs",
-  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge, one step per 20%, drawn like the PlayStation player numbers. At 20% or less the centre LED pulses; while charging the level and the next one take turns; once charged all five pulse until you unplug."
+  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge, one step per 20%, drawn like the PlayStation player numbers. At 20% or less the centre LED blinks; while charging the level and the next one take turns; once charged all five blink until you unplug."
 }

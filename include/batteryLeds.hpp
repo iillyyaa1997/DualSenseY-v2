@@ -7,10 +7,9 @@
 // 20%, drawn like the PlayStation player numbers (newer controller revisions only light the LEDs
 // in symmetric groups: centre, inner pair, outer pair):
 //   1 = centre, 2 = inner pair, 3 = centre + outer pair, 4 = inner + outer pairs, 5 = all
-// Unplugged: the level stays lit; at 20% or less the centre LED pulses.
-// Charging: the level and the next one take turns. Charged: all five pulse while the cable stays in.
-// The pad switches LEDs off hard and has only three brightness levels, so nothing blinks off:
-// pictures pulse between bright and dim, and while charging they change over at dim.
+// Unplugged: the level stays lit; at 20% or less the centre LED blinks.
+// Charging: the level and the next one take turns. Charged: all five blink while the cable stays in.
+// (The pad fades LEDs in by itself and switches them off at once; it has no smooth way out.)
 class BatteryLeds {
 public:
 	// duaLib PowerState values
@@ -21,14 +20,12 @@ public:
 	static constexpr uint8_t LOW_PERCENT = 20;
 	// A freshly connected pad reads as discharging at 0% until its first input report arrives
 	static constexpr int64_t CONFIRM_MS = 3000;
-	// One pulse: bright, mid, dim, mid
-	static constexpr int64_t PULSE_MS = 3000;
-	// While charging each picture rises from dim to bright and back down before the other one
-	static constexpr int64_t PICTURE_MS = 3000;
+	// Each picture of a blink or of the charging turns lasts this long
+	static constexpr int64_t HALF_PERIOD_MS = 1000;
 
 	struct Show {
 		int level;  // -1 = leave the player number, 0 = all off, 1-5 = steps
-		int dim;    // 0 = full brightness, 1 = one step dimmer, 2 = two steps dimmer
+		int dim;    // brightness steps below the user's choice (kept 0)
 	};
 
 	Show Update(bool connected, uint8_t powerState, uint8_t percent, int64_t nowMs) {
@@ -41,13 +38,11 @@ public:
 
 		int full = FullSteps(percent);
 		if (powerState == POWER_COMPLETE || (powerState == POWER_CHARGING && full == 5))
-			return {5, PulseDim(nowMs)};
-		if (powerState == POWER_CHARGING) {
-			bool first = (nowMs / PICTURE_MS) % 2 == 0;
-			return {first ? full : full + 1, PictureDim(nowMs)};
-		}
+			return {Alternate(5, 0, nowMs), 0};
+		if (powerState == POWER_CHARGING)
+			return {Alternate(full, full + 1, nowMs), 0};
 		if (percent <= LOW_PERCENT)
-			return {1, PulseDim(nowMs)};
+			return {Alternate(1, 0, nowMs), 0};
 		return {full, 0};
 	}
 
@@ -57,23 +52,8 @@ public:
 		return steps > 5 ? 5 : steps;
 	}
 
-	// bright 1000 ms, mid 500, dim 1000, mid 500
-	static int PulseDim(int64_t nowMs) {
-		int64_t p = nowMs % PULSE_MS;
-		if (p < 1000) return 0;
-		if (p < 1500) return 1;
-		if (p < 2500) return 2;
-		return 1;
-	}
-
-	// dim 600 ms, mid 500, bright 800, mid 500, dim 600: pictures change over while dim
-	static int PictureDim(int64_t nowMs) {
-		int64_t p = nowMs % PICTURE_MS;
-		if (p < 600) return 2;
-		if (p < 1100) return 1;
-		if (p < 1900) return 0;
-		if (p < 2400) return 1;
-		return 2;
+	static int Alternate(int first, int second, int64_t nowMs) {
+		return (nowMs / HALF_PERIOD_MS) % 2 == 0 ? first : second;
 	}
 
 private:
