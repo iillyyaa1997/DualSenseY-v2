@@ -116,6 +116,7 @@ namespace duaLibUtils {
 		bool playerLed = true;
 		int playerLedLevel = -1;
 		int playerLedRawMask = -1;
+		int playerLedFlags = -1;  // test: bit 0 = PlayerLightFade, bits 1-2 = the two undocumented bits
 	};
 
 	// Draws `level` (1-5) like the PlayStation player numbers: 1 = centre, 2 = inner pair,
@@ -657,6 +658,10 @@ int readFunc() {
 
 					bool oldStyle = ((controller.versionReport.HardwareInfo & 0x00FFFF00) < 0x00000400);
 					duaLibUtils::setPlayerLights(controller, oldStyle);
+					if (controller.playerLedFlags >= 0) {
+						controller.dualsenseCurOutputState.PlayerLightFade = controller.playerLedFlags & 1;
+						controller.dualsenseCurOutputState.PlayerLightUNK = (controller.playerLedFlags >> 1) & 3;
+					}
 
 					if (controller.dualsenseCurOutputState.lightBrightness != controller.dualsenseLastOutputState.lightBrightness || controller.wasDisconnected) {
 						controller.dualsenseCurOutputState.AllowLightBrightnessChange = true;
@@ -2118,6 +2123,23 @@ int scePadSetPlayerLedRaw(int handle, int mask) {
 		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
 
 		controller.playerLedRawMask = mask;
+
+		return SCE_OK;
+	}
+	return SCE_PAD_ERROR_INVALID_HANDLE;
+}
+
+int scePadSetPlayerLedFlags(int handle, int flags) {
+	if (!g_initialized) return SCE_PAD_ERROR_NOT_INITIALIZED;
+	if (flags < -1 || flags > 7) return SCE_PAD_ERROR_INVALID_ARG;
+
+	for (auto& controller : g_controllers) {
+		std::shared_lock guard(controller.lock);
+
+		if (controller.sceHandle != handle) continue;
+		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
+
+		controller.playerLedFlags = flags;
 
 		return SCE_OK;
 	}

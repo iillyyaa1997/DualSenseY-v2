@@ -360,7 +360,8 @@ const std::unordered_map<std::string, TriggerHandler> dsxTriggerHandlers = {
 // Pretends a battery state so the alert can be tried without draining a pad.
 // padNumber is 1-4 (0 = all), mode is 0 off, 1 low battery, 2 charge complete,
 // 3 charging at 50%, 4 discharging at 60%, 5 charging at 20%, 6 discharging at 30%; 100-131 light the raw player light bits (mode - 100),
-// 140-142 force the LED brightness (bright, mid, dim), 99 ends both
+// 140-142 force the LED brightness (bright, mid, dim), 170-177 set the fade bit and the two
+// undocumented player light bits (bit 0 fade, bits 1-2 unknown), 99 ends all of these
 void SetBatteryAlertTest(int padNumber, int mode);
 // Show the battery level on the player LEDs instead of the player number
 void SetPlayerLedBattery(bool enabled);

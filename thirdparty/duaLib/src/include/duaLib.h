@@ -433,6 +433,8 @@ extern "C" {
  int scePadSetPlayerLedLevel(int handle, int level);
 /// DualSense only, for testing: mask bits 0-4 go straight to the five player light bits; -1 = off
  int scePadSetPlayerLedRaw(int handle, int mask);
+/// DualSense only, for testing: bit 0 = PlayerLightFade, bits 1-2 = the undocumented player light bits; -1 = leave them
+ int scePadSetPlayerLedFlags(int handle, int flags);
  int scePadSetMicLed(int handle, bool state);
  std::string scePadGetMacAddress(int handle);
 /// DualSense only. percent is 0-100 in steps of 10, powerState is 0 discharging, 1 charging, 2 complete, anything else an error
