@@ -16,6 +16,7 @@ static BatteryLeds g_BatteryLeds[4];
 static BatteryLeds::Show g_BatteryLedShow[4] = {{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}};
 static std::atomic<bool> g_PlayerLedBattery = false;
 static std::atomic<int> g_PlayerLedRawTest[4] = {-1, -1, -1, -1};
+static std::atomic<int> g_PlayerLedRawBrightness[4] = {-1, -1, -1, -1};
 
 // <Mac address, was loaded>
 static std::unordered_map<std::string, bool> loadList;
@@ -151,8 +152,13 @@ void SetBatteryAlertTest(int padNumber, int mode)
 			continue;
 		if (mode >= 100 && mode <= 131)
 			g_PlayerLedRawTest[i] = mode - 100;  // raw player light bits, for finding out what a pad lights
+		else if (mode >= 140 && mode <= 142)
+			g_PlayerLedRawBrightness[i] = mode - 140;  // 0 bright, 1 mid, 2 dim
 		else if (mode == 99)
+		{
 			g_PlayerLedRawTest[i] = -1;
+			g_PlayerLedRawBrightness[i] = -1;
+		}
 		else
 			g_BatteryAlertTest[i] = mode;
 	}
@@ -271,6 +277,8 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 	int ledBrightness = settings.brightness;
 	if (batteryShow.level > 0)
 		ledBrightness = std::min(2, settings.brightness + batteryShow.dim);
+	if (g_PlayerLedRawBrightness[index] >= 0)
+		ledBrightness = g_PlayerLedRawBrightness[index];
 	scePadSetPlayerLedBrightness(g_ScePad[index], ledBrightness);
 	scePadSetPlayerLed(g_ScePad[index], settings.disablePlayerLed ? false : true);
 	scePadSetPlayerLedLevel(g_ScePad[index], batteryShow.level);
