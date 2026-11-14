@@ -429,7 +429,7 @@ extern "C" {
  int scePadSetPlayerLedBrightness(int handle, int brightness);
  int scePadSetPlayerLed(int handle, bool state);
 /// DualSense only. level -1 shows the player number again, 0 switches the LEDs off,
-/// 1-5 lights that many LEDs from the middle outwards (centre, inner pair, outer pair)
+/// 1-5 lights that many LEDs like the PlayStation player numbers
  int scePadSetPlayerLedLevel(int handle, int level);
 /// DualSense only, for testing: mask bits 0-4 go straight to the five player light bits; -1 = off
  int scePadSetPlayerLedRaw(int handle, int mask);

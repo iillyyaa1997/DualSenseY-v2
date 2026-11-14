@@ -177,5 +177,5 @@
   "UdpTimeoutSeconds": "UDP timeout (seconds)",
   "UdpTimeoutSecondsTooltip": "How long mod effects stay active after the last UDP packet. 0 = keep them until the next packet or a reset.",
   "PlayerLedBattery": "Show battery on player LEDs",
-  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge: one LED is nearly empty, all five are full. While charging the next step blinks; at 10% the centre LED blinks."
+  "PlayerLedBatteryTooltip": "The five LEDs under the touchpad show the charge, one step per 20%, drawn like the PlayStation player numbers. At 20% or less the centre LED blinks; while charging the level and the next one take turns; once charged all five blink until you unplug."
 }

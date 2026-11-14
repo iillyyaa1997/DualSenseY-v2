@@ -118,13 +118,14 @@ namespace duaLibUtils {
 		int playerLedRawMask = -1;
 	};
 
-	// Lights `level` LEDs from the middle outwards. Older revisions address each LED
+	// Draws `level` (1-5) like the PlayStation player numbers: 1 = centre, 2 = inner pair,
+	// 3 = centre + outer pair, 4 = inner + outer pairs, 5 = all. Older revisions address each LED
 	// (PlayerLight1-5 = left to right); newer ones light symmetric groups only:
 	// PlayerLight1 = outer pair, PlayerLight2 = inner pair, PlayerLight3 = centre.
 	void setPlayerLightsLevel(duaLibUtils::controller& controller, int level, bool oldStyle) {
 		bool centre = level == 1 || level == 3 || level == 5;
-		bool inner = level >= 2;
-		bool outer = level >= 4;
+		bool inner = level == 2 || level == 4 || level == 5;
+		bool outer = level >= 3;
 		auto& out = controller.dualsenseCurOutputState;
 		if (oldStyle) {
 			out.PlayerLight1 = outer;

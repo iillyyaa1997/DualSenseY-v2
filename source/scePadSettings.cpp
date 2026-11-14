@@ -13,7 +13,7 @@ static BatteryAlert g_BatteryAlerts[4];
 static std::atomic<int> g_BatteryAlertTest[4] = {};
 static bool g_BatteryAlertRumbled[4] = {};
 static BatteryLeds g_BatteryLeds[4];
-static int g_BatteryLedLevel[4] = {-1, -1, -1, -1};
+static BatteryLeds::Show g_BatteryLedShow[4] = {{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}};
 static std::atomic<bool> g_PlayerLedBattery = false;
 static std::atomic<int> g_PlayerLedRawTest[4] = {-1, -1, -1, -1};
 
@@ -185,9 +185,19 @@ static void UpdateBatteryAlert(uint32_t index, int64_t nowMs)
 		percent = 60;
 		powerState = BatteryAlert::POWER_DISCHARGING;
 	}
+	else if (test == 5)
+	{
+		percent = 20;
+		powerState = BatteryAlert::POWER_CHARGING;
+	}
+	else if (test == 6)
+	{
+		percent = 30;
+		powerState = BatteryAlert::POWER_DISCHARGING;
+	}
 
 	g_BatteryAlerts[index].Update(connected, powerState, percent, nowMs);
-	g_BatteryLedLevel[index] = g_BatteryLeds[index].Update(connected, powerState, percent, nowMs);
+	g_BatteryLedShow[index] = g_BatteryLeds[index].Update(connected, powerState, percent, nowMs);
 }
 
 // The pad's own colour blinks; a pad with no colour blinks red for low battery and green for full
@@ -252,9 +262,14 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 	ApplyBatteryAlertToLightbar(batteryAlert, finalLightbar, nowMs);
 	scePadSetLightBar(g_ScePad[index], &finalLightbar);
 
-	scePadSetPlayerLedBrightness(g_ScePad[index], settings.brightness);
+	// The battery picture fades by stepping the LED brightness down from the user's choice
+	const BatteryLeds::Show batteryShow = g_PlayerLedBattery ? g_BatteryLedShow[index] : BatteryLeds::Show{-1, 0};
+	int ledBrightness = settings.brightness;
+	if (batteryShow.level > 0)
+		ledBrightness = std::min(2, settings.brightness + batteryShow.dim);
+	scePadSetPlayerLedBrightness(g_ScePad[index], ledBrightness);
 	scePadSetPlayerLed(g_ScePad[index], settings.disablePlayerLed ? false : true);
-	scePadSetPlayerLedLevel(g_ScePad[index], g_PlayerLedBattery ? g_BatteryLedLevel[index] : -1);
+	scePadSetPlayerLedLevel(g_ScePad[index], batteryShow.level);
 	scePadSetPlayerLedRaw(g_ScePad[index], g_PlayerLedRawTest[index]);
 	bool micLedState = settings.gyroToRightStick && settings.gyroToRightStickPermanent;
 	scePadSetMicLed(g_ScePad[index], micLedState);

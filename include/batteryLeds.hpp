@@ -3,10 +3,13 @@
 
 #include <cstdint>
 
-// Shows a DualSense battery level on the five player LEDs under the touchpad.
-// The level grows from the middle outwards (1 = centre LED ... 5 = all five), because newer
-// controller revisions only light the LEDs in symmetric pairs. While charging the next step
-// blinks, and at 10% or less the single centre LED blinks.
+// Shows a DualSense battery level on the five player LEDs under the touchpad, one step per full
+// 20%, drawn like the PlayStation player numbers (newer controller revisions only light the LEDs
+// in symmetric groups: centre, inner pair, outer pair):
+//   1 = centre, 2 = inner pair, 3 = centre + outer pair, 4 = inner + outer pairs, 5 = all
+// Unplugged: the level stays lit; at 20% or less the centre LED blinks.
+// Charging: the level and the next one take turns. Charged: all five blink while the cable stays in.
+// Blinking fades through the three LED brightness steps instead of switching hard.
 class BatteryLeds {
 public:
 	// duaLib PowerState values
@@ -14,40 +17,56 @@ public:
 	static constexpr uint8_t POWER_CHARGING = 0x01;
 	static constexpr uint8_t POWER_COMPLETE = 0x02;
 
-	static constexpr uint8_t LOW_PERCENT = 10;
+	static constexpr uint8_t LOW_PERCENT = 20;
 	// A freshly connected pad reads as discharging at 0% until its first input report arrives
 	static constexpr int64_t CONFIRM_MS = 3000;
-	static constexpr int64_t BLINK_HALF_PERIOD_MS = 700;
+	// One picture is shown per half period: it fades in, holds and fades out
+	static constexpr int64_t HALF_PERIOD_MS = 1000;
+	static constexpr int64_t FADE_STEP_MS = 150;
 
-	// Level the LEDs should show: -1 = leave the player number pattern, 0 = all off, 1-5 = steps
-	int Update(bool connected, uint8_t powerState, uint8_t percent, int64_t nowMs) {
+	struct Show {
+		int level;  // -1 = leave the player number, 0 = all off, 1-5 = steps
+		int dim;    // 0 = full brightness, 1 = one step dimmer, 2 = two steps dimmer
+	};
+
+	Show Update(bool connected, uint8_t powerState, uint8_t percent, int64_t nowMs) {
 		if (!connected || powerState > POWER_COMPLETE) {
 			m_ConnectedAt = -1;
-			return -1;
+			return {-1, 0};
 		}
 		if (m_ConnectedAt < 0) m_ConnectedAt = nowMs;
-		if (nowMs - m_ConnectedAt < CONFIRM_MS) return -1;
+		if (nowMs - m_ConnectedAt < CONFIRM_MS) return {-1, 0};
 
-		bool blinkOn = (nowMs / BLINK_HALF_PERIOD_MS) % 2 == 0;
-		if (powerState == POWER_COMPLETE) return 5;
-
-		int steps = Steps(percent);
-		if (powerState == POWER_CHARGING) {
-			if (steps == 5) return blinkOn ? 5 : 4;
-			return blinkOn ? steps + 1 : steps;
-		}
-
-		if (percent <= LOW_PERCENT) return blinkOn ? 1 : 0;
-		return steps;
+		int full = FullSteps(percent);
+		if (powerState == POWER_COMPLETE || (powerState == POWER_CHARGING && full == 5))
+			return Alternate(5, 0, nowMs);
+		if (powerState == POWER_CHARGING)
+			return Alternate(full, full + 1, nowMs);
+		if (percent <= LOW_PERCENT)
+			return Alternate(1, 0, nowMs);
+		return {full, 0};
 	}
 
-	// 10-20% -> 1, 30-40% -> 2, 50-60% -> 3, 70-80% -> 4, 90-100% -> 5
-	static int Steps(uint8_t percent) {
-		int steps = (percent + 19) / 20;
-		return steps < 1 ? 1 : steps > 5 ? 5 : steps;
+	// Full 20% steps: 0-10% -> 0, 20-30% -> 1, 40-50% -> 2, 60-70% -> 3, 80-90% -> 4, 100% -> 5
+	static int FullSteps(uint8_t percent) {
+		int steps = percent / 20;
+		return steps > 5 ? 5 : steps;
+	}
+
+	// Brightness steps within a half period: dim -> mid -> full ... full -> mid -> dim
+	static int Dim(int64_t nowMs) {
+		int64_t p = nowMs % HALF_PERIOD_MS;
+		if (p < FADE_STEP_MS || p >= HALF_PERIOD_MS - FADE_STEP_MS) return 2;
+		if (p < 2 * FADE_STEP_MS || p >= HALF_PERIOD_MS - 2 * FADE_STEP_MS) return 1;
+		return 0;
 	}
 
 private:
+	static Show Alternate(int first, int second, int64_t nowMs) {
+		bool firstHalf = (nowMs / HALF_PERIOD_MS) % 2 == 0;
+		return {firstHalf ? first : second, Dim(nowMs)};
+	}
+
 	int64_t m_ConnectedAt = -1;
 };
 
