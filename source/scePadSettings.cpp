@@ -13,8 +13,7 @@ static BatteryAlert g_BatteryAlerts[4];
 static std::atomic<int> g_BatteryAlertTest[4] = {};
 static bool g_BatteryAlertRumbled[4] = {};
 static BatteryLeds g_BatteryLeds[4];
-static BatteryLeds::Show g_BatteryLedShow[4] = {{-1, 0.0f}, {-1, 0.0f}, {-1, 0.0f}, {-1, 0.0f}};
-static FadeDither g_FadeDither[4];
+static BatteryLeds::Show g_BatteryLedShow[4] = {{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0}};
 static std::atomic<bool> g_PlayerLedBattery = false;
 static std::atomic<int> g_PlayerLedRawTest[4] = {-1, -1, -1, -1};
 static std::atomic<int> g_PlayerLedRawBrightness[4] = {-1, -1, -1, -1};
@@ -277,27 +276,18 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 		ApplyBatteryAlertToLightbar(batteryAlert, finalLightbar, nowMs);
 	scePadSetLightBar(g_ScePad[index], &finalLightbar);
 
-	// The battery picture fades out in software, starting from the user's brightness
-	const BatteryLeds::Show batteryShow = g_PlayerLedBattery ? g_BatteryLedShow[index] : BatteryLeds::Show{-1, 0.0f};
+	// The battery picture pulses by stepping the LED brightness down from the user's choice
+	const BatteryLeds::Show batteryShow = g_PlayerLedBattery ? g_BatteryLedShow[index] : BatteryLeds::Show{-1, 0};
 	int ledBrightness = settings.brightness;
-	int ledLevel = batteryShow.level;
-	bool instant = false;
 	if (batteryShow.level > 0)
-	{
-		FadeDither::Out out = g_FadeDither[index].Next(batteryShow.fade);
-		ledBrightness = std::min(2, settings.brightness + out.brightnessSteps);
-		ledLevel = out.lit ? batteryShow.level : 0;
-		instant = out.instant;
-	}
+		ledBrightness = std::min(2, settings.brightness + batteryShow.dim);
 	if (g_PlayerLedRawBrightness[index] >= 0)
 		ledBrightness = g_PlayerLedRawBrightness[index];
 	scePadSetPlayerLedBrightness(g_ScePad[index], ledBrightness);
 	scePadSetPlayerLed(g_ScePad[index], settings.disablePlayerLed ? false : true);
-	scePadSetPlayerLedLevel(g_ScePad[index], ledLevel);
+	scePadSetPlayerLedLevel(g_ScePad[index], batteryShow.level);
 	scePadSetPlayerLedRaw(g_ScePad[index], g_PlayerLedRawTest[index]);
-	// While the picture vanishes the pad's own fade-in would blur the quick on/off switching
-	const int flagsTest = g_PlayerLedFlagsTest[index];
-	scePadSetPlayerLedFlags(g_ScePad[index], flagsTest >= 0 ? flagsTest : (instant ? 1 : 0));
+	scePadSetPlayerLedFlags(g_ScePad[index], g_PlayerLedFlagsTest[index]);
 	bool micLedState = settings.gyroToRightStick && settings.gyroToRightStickPermanent;
 	scePadSetMicLed(g_ScePad[index], micLedState);
 	if (!settings.udpConfig)

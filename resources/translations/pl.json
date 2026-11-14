@@ -169,5 +169,5 @@
   "UdpTimeoutSeconds": "Limit czasu UDP (sekundy)",
   "UdpTimeoutSecondsTooltip": "Jak długo efekty moda pozostają aktywne po ostatnim pakiecie UDP. 0 = do następnego pakietu lub resetu.",
   "PlayerLedBattery": "Pokazuj baterię na diodach gracza",
-  "PlayerLedBatteryTooltip": "Pięć diod pod touchpadem pokazuje naładowanie, jeden krok na każde 20%, jak numer gracza na PlayStation. Przy 20% i mniej miga środkowa, podczas ładowania na zmianę świeci obecny i następny poziom, a po naładowaniu miga wszystkie pięć, dopóki kabel jest podłączony."
+  "PlayerLedBatteryTooltip": "Pięć diod pod touchpadem pokazuje naładowanie, jeden krok na każde 20%, jak numer gracza na PlayStation. Przy 20% i mniej pulsuje środkowa, podczas ładowania na zmianę świeci obecny i następny poziom, a po naładowaniu pulsuje wszystkie pięć, dopóki kabel jest podłączony."
 }
