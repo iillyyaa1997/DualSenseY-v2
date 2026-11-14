@@ -9,7 +9,8 @@
 //   1 = centre, 2 = inner pair, 3 = centre + outer pair, 4 = inner + outer pairs, 5 = all
 // Unplugged: the level stays lit; at 20% or less the centre LED blinks.
 // Charging: the level and the next one take turns. Charged: all five blink while the cable stays in.
-// Blinking fades through the three LED brightness steps instead of switching hard.
+// The pad itself fades LEDs in but switches them off hard, so each picture steps down through
+// the three LED brightness levels before it goes.
 class BatteryLeds {
 public:
 	// duaLib PowerState values
@@ -20,7 +21,7 @@ public:
 	static constexpr uint8_t LOW_PERCENT = 20;
 	// A freshly connected pad reads as discharging at 0% until its first input report arrives
 	static constexpr int64_t CONFIRM_MS = 3000;
-	// One picture is shown per half period: it fades in, holds and fades out
+	// One picture is shown per half period: it holds, then steps down before the next one
 	static constexpr int64_t HALF_PERIOD_MS = 1500;
 	static constexpr int64_t FADE_STEP_MS = 300;
 
@@ -53,11 +54,11 @@ public:
 		return steps > 5 ? 5 : steps;
 	}
 
-	// Brightness steps within a half period: dim -> mid -> full ... full -> mid -> dim
+	// Brightness within a half period: full (the pad fades it in by itself), then mid, then dim
 	static int Dim(int64_t nowMs) {
 		int64_t p = nowMs % HALF_PERIOD_MS;
-		if (p < FADE_STEP_MS || p >= HALF_PERIOD_MS - FADE_STEP_MS) return 2;
-		if (p < 2 * FADE_STEP_MS || p >= HALF_PERIOD_MS - 2 * FADE_STEP_MS) return 1;
+		if (p >= HALF_PERIOD_MS - FADE_STEP_MS) return 2;
+		if (p >= HALF_PERIOD_MS - 2 * FADE_STEP_MS) return 1;
 		return 0;
 	}
 
