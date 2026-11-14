@@ -259,7 +259,9 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 		s_SceLightBar lightbar = {(uint8_t)scaleFloatToInt(settings.led[0], 1.0f), (uint8_t)scaleFloatToInt(settings.led[1], 1.0f), (uint8_t)scaleFloatToInt(settings.led[2], 1.0f)};
 		finalLightbar = lightbar;
 	}
-	ApplyBatteryAlertToLightbar(batteryAlert, finalLightbar, nowMs);
+	// With the battery on the player LEDs the lightbar keeps its own colour
+	if (!g_PlayerLedBattery)
+		ApplyBatteryAlertToLightbar(batteryAlert, finalLightbar, nowMs);
 	scePadSetLightBar(g_ScePad[index], &finalLightbar);
 
 	// The battery picture fades by stepping the LED brightness down from the user's choice
