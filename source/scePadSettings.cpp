@@ -296,7 +296,8 @@ void applySettings(uint32_t index, s_scePadSettings settings, AudioPassthrough &
 	scePadSetPlayerLedLevel(g_ScePad[index], ledLevel);
 	scePadSetPlayerLedRaw(g_ScePad[index], g_PlayerLedRawTest[index]);
 	// While the picture vanishes the pad's own fade-in would blur the quick on/off switching
-	scePadSetPlayerLedFlags(g_ScePad[index], g_PlayerLedFlagsTest[index] >= 0 ? g_PlayerLedFlagsTest[index] : (instant ? 1 : 0));
+	const int flagsTest = g_PlayerLedFlagsTest[index];
+	scePadSetPlayerLedFlags(g_ScePad[index], flagsTest >= 0 ? flagsTest : (instant ? 1 : 0));
 	bool micLedState = settings.gyroToRightStick && settings.gyroToRightStickPermanent;
 	scePadSetMicLed(g_ScePad[index], micLedState);
 	if (!settings.udpConfig)
