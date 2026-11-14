@@ -21,8 +21,8 @@ public:
 	// A freshly connected pad reads as discharging at 0% until its first input report arrives
 	static constexpr int64_t CONFIRM_MS = 3000;
 	// One picture is shown per half period: it fades in, holds and fades out
-	static constexpr int64_t HALF_PERIOD_MS = 1000;
-	static constexpr int64_t FADE_STEP_MS = 150;
+	static constexpr int64_t HALF_PERIOD_MS = 1500;
+	static constexpr int64_t FADE_STEP_MS = 300;
 
 	struct Show {
 		int level;  // -1 = leave the player number, 0 = all off, 1-5 = steps

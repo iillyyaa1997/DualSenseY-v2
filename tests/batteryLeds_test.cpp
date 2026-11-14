@@ -22,7 +22,7 @@ int main() {
   // charged (complete, or charging at 100%): all five blink
   for (uint8_t st : {(uint8_t)2, (uint8_t)1}) { B b = ready(st, 100); bool five = false, none = false; for (int64_t t = 3000; t < 9000; t += 10) { int l = b.Update(true, st, 100, t).level; CHECK(l == 5 || l == 0); five |= l == 5; none |= l == 0; } CHECK(five && none); }
   // fade shape inside a half period
-  CHECK(B::Dim(0) == 2 && B::Dim(149) == 2 && B::Dim(150) == 1 && B::Dim(299) == 1 && B::Dim(300) == 0 && B::Dim(699) == 0 && B::Dim(700) == 1 && B::Dim(849) == 1 && B::Dim(850) == 2 && B::Dim(999) == 2);
+  CHECK(B::Dim(0) == 2 && B::Dim(299) == 2 && B::Dim(300) == 1 && B::Dim(599) == 1 && B::Dim(600) == 0 && B::Dim(899) == 0 && B::Dim(900) == 1 && B::Dim(1199) == 1 && B::Dim(1200) == 2 && B::Dim(1499) == 2);
   // error state / disconnect
   { B b = ready(0, 80); CHECK(b.Update(true, 0x0F, 0, 5000).level == -1); CHECK(b.Update(true, 0, 80, 5100).level == -1); CHECK(b.Update(true, 0, 80, 8200).level == 4); }
   printf("%d checks, %d failed\n", checks, fails); return fails != 0;
