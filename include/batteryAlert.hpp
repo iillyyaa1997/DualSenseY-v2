@@ -58,6 +58,9 @@ public:
 		}
 	}
 
+	// The battery level at which the low warning starts (LOW_PERCENT unless changed)
+	void SetLowPercent(uint8_t percent) { m_LowPercent = percent; }
+
 	Signal CurrentSignal() const { return m_Signal; }
 
 	bool IsBlinking(int64_t nowMs) const {
@@ -78,7 +81,7 @@ private:
 			// A full pad may top itself up: it stays full until the cable is removed
 			case POWER_CHARGING: return m_Signal == Signal::Full ? Signal::Full : Signal::None;
 			// Latched, so a reading that bounces back above the limit does not end the warning
-			case POWER_DISCHARGING: return percent <= LOW_PERCENT || m_Signal == Signal::Low ? Signal::Low : Signal::None;
+			case POWER_DISCHARGING: return percent <= m_LowPercent || m_Signal == Signal::Low ? Signal::Low : Signal::None;
 			default: return Signal::None;
 		}
 	}
@@ -91,6 +94,7 @@ private:
 	int64_t m_SignalStartMs = 0;
 	int64_t m_RumbleUntilMs = 0;
 	bool m_LowRumbled = false;
+	uint8_t m_LowPercent = LOW_PERCENT;
 };
 
 #endif

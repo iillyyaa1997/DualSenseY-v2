@@ -196,6 +196,8 @@ static void UpdateBatteryAlert(uint32_t index, int64_t nowMs)
 		powerState = BatteryAlert::POWER_DISCHARGING;
 	}
 
+	// With the battery on the player LEDs the vibration comes when the centre LED starts blinking
+	g_BatteryAlerts[index].SetLowPercent(g_PlayerLedBattery ? BatteryLeds::LOW_PERCENT : BatteryAlert::LOW_PERCENT);
 	g_BatteryAlerts[index].Update(connected, powerState, percent, nowMs);
 	g_BatteryLedShow[index] = g_BatteryLeds[index].Update(connected, powerState, percent, nowMs);
 }
